@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "silkworms",
+	"version": "${version}",
+	"name": "Silkworms",
+	"description": "A gentle, vanilla-friendly life cycle: Silkworm -> Cocoon -> Silk Moth.",
+	"authors": [
+		"FluffyBacon"
+	],
+	"contact": {
+		"sources": "https://github.com/FluffyBacon678/Minecraft-Mod-SilkWorms"
+	},
+	"license": "MIT",
+	"icon": "assets/silkworms/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.fluffybacon.silkworms.Silkworms"
+		],
+		"client": [
+			"com.fluffybacon.silkworms.SilkwormsClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

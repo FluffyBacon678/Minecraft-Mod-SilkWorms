@@ -1,0 +1,8 @@
+{
+	"entity.silkworms.silkworm": "Silkworm",
+	"entity.silkworms.cocoon": "Cocoon",
+	"entity.silkworms.silk_moth": "Silk Moth",
+	"item.silkworms.silkworm_spawn_egg": "Silkworm Spawn Egg",
+	"item.silkworms.cocoon_spawn_egg": "Cocoon Spawn Egg",
+	"item.silkworms.silk_moth_spawn_egg": "Silk Moth Spawn Egg"
+}
