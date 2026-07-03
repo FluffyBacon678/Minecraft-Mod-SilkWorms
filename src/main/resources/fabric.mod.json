@@ -8,7 +8,9 @@
 		"FluffyBacon"
 	],
 	"contact": {
-		"sources": "https://github.com/FluffyBacon678/Minecraft-Mod-SilkWorms"
+		"homepage": "https://github.com/FluffyBacon678/Minecraft-Mod-SilkWorms",
+		"sources": "https://github.com/FluffyBacon678/Minecraft-Mod-SilkWorms",
+		"issues": "https://github.com/FluffyBacon678/Minecraft-Mod-SilkWorms/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/silkworms/icon.png",
@@ -19,6 +21,9 @@
 		],
 		"client": [
 			"com.fluffybacon.silkworms.SilkwormsClient"
+		],
+		"modmenu": [
+			"com.fluffybacon.silkworms.client.SilkwormsModMenu"
 		]
 	},
 	"depends": {

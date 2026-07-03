@@ -22,6 +22,7 @@ public class Silkworms implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		SilkwormsConfig.load();
 		ModEntities.register();
 		ModItems.register();
 		LOGGER.info("Silkworms lifecycle mod initialized.");

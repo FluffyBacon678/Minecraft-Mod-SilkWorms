@@ -2,6 +2,7 @@ package com.fluffybacon.silkworms.registry;
 
 import com.fluffybacon.silkworms.Silkworms;
 import com.fluffybacon.silkworms.SilkwormsBalance;
+import com.fluffybacon.silkworms.SilkwormsConfig;
 import com.fluffybacon.silkworms.entity.CocoonEntity;
 import com.fluffybacon.silkworms.entity.SilkMothEntity;
 import com.fluffybacon.silkworms.entity.SilkwormEntity;
@@ -58,12 +59,15 @@ public final class ModEntities {
 				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, SilkwormEntity::canSpawn);
 
 		// Modest spawns in forest biomes ("grassy or forest-like areas").
-		BiomeModifications.addSpawn(
-				BiomeSelectors.tag(BiomeTags.IS_FOREST),
-				SpawnGroup.CREATURE, SILKWORM,
-				SilkwormsBalance.SILKWORM_SPAWN_WEIGHT,
-				SilkwormsBalance.SILKWORM_MIN_GROUP_SIZE,
-				SilkwormsBalance.SILKWORM_MAX_GROUP_SIZE);
+		// Registered once at startup, so the config toggle needs a restart.
+		if (SilkwormsConfig.get().naturalSilkwormSpawning) {
+			BiomeModifications.addSpawn(
+					BiomeSelectors.tag(BiomeTags.IS_FOREST),
+					SpawnGroup.CREATURE, SILKWORM,
+					SilkwormsBalance.SILKWORM_SPAWN_WEIGHT,
+					SilkwormsBalance.SILKWORM_MIN_GROUP_SIZE,
+					SilkwormsBalance.SILKWORM_MAX_GROUP_SIZE);
+		}
 	}
 
 	private static <T extends Entity> EntityType<T> register(String name, EntityType.Builder<T> builder) {

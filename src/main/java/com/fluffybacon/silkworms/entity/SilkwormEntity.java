@@ -1,6 +1,7 @@
 package com.fluffybacon.silkworms.entity;
 
 import com.fluffybacon.silkworms.SilkwormsBalance;
+import com.fluffybacon.silkworms.SilkwormsConfig;
 import com.fluffybacon.silkworms.entity.ai.EatGrassVegetationGoal;
 import com.fluffybacon.silkworms.registry.ModEntities;
 import net.minecraft.entity.EntityType;
@@ -64,18 +65,20 @@ public class SilkwormEntity extends AnimalEntity {
 	}
 
 	private int randomEatCooldown() {
-		int span = SilkwormsBalance.SILKWORM_EAT_COOLDOWN_MAX - SilkwormsBalance.SILKWORM_EAT_COOLDOWN_MIN + 1;
-		return SilkwormsBalance.SILKWORM_EAT_COOLDOWN_MIN + this.random.nextInt(span);
+		SilkwormsConfig config = SilkwormsConfig.get();
+		int min = config.eatCooldownMinSeconds * 20;
+		int max = Math.max(min, config.eatCooldownMaxSeconds * 20);
+		return min + this.random.nextInt(max - min + 1);
 	}
 
 	/** True when the worm is off cooldown and has not yet eaten its fill. */
 	public boolean isReadyToEat() {
-		return this.eatCooldown <= 0 && this.eatenPlants < SilkwormsBalance.GRASS_PLANTS_REQUIRED;
+		return this.eatCooldown <= 0 && this.eatenPlants < SilkwormsConfig.get().grassPlantsRequired;
 	}
 
 	/** Called by the eat goal after it removes one valid grass plant. */
 	public void onAtePlant() {
-		this.eatenPlants = Math.min(this.eatenPlants + 1, SilkwormsBalance.GRASS_PLANTS_REQUIRED);
+		this.eatenPlants++;
 		this.eatCooldown = randomEatCooldown();
 	}
 
@@ -86,7 +89,7 @@ public class SilkwormEntity extends AnimalEntity {
 			this.eatCooldown--;
 		}
 		if (!this.getEntityWorld().isClient() && !this.isRemoved()
-				&& this.eatenPlants >= SilkwormsBalance.GRASS_PLANTS_REQUIRED) {
+				&& this.eatenPlants >= SilkwormsConfig.get().grassPlantsRequired) {
 			transformIntoCocoon();
 		}
 	}

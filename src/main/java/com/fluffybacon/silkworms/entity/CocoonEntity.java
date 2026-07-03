@@ -1,6 +1,6 @@
 package com.fluffybacon.silkworms.entity;
 
-import com.fluffybacon.silkworms.SilkwormsBalance;
+import com.fluffybacon.silkworms.SilkwormsConfig;
 import com.fluffybacon.silkworms.registry.ModEntities;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -22,7 +22,7 @@ public class CocoonEntity extends PathAwareEntity {
 
 	public CocoonEntity(EntityType<? extends CocoonEntity> entityType, World world) {
 		super(entityType, world);
-		this.growthTimer = SilkwormsBalance.COCOON_GROWTH_TIME;
+		this.growthTimer = SilkwormsConfig.get().cocoonGrowthSeconds * 20;
 		this.setPersistent();
 		this.setAiDisabled(true); // fully stationary; no goals, no looking around
 	}
@@ -76,6 +76,6 @@ public class CocoonEntity extends PathAwareEntity {
 	@Override
 	protected void readCustomData(ReadView view) {
 		super.readCustomData(view);
-		this.growthTimer = view.getInt("GrowthTimer", SilkwormsBalance.COCOON_GROWTH_TIME);
+		this.growthTimer = view.getInt("GrowthTimer", SilkwormsConfig.get().cocoonGrowthSeconds * 20);
 	}
 }

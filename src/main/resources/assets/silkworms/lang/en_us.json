@@ -4,5 +4,12 @@
 	"entity.silkworms.silk_moth": "Silk Moth",
 	"item.silkworms.silkworm_spawn_egg": "Silkworm Spawn Egg",
 	"item.silkworms.cocoon_spawn_egg": "Cocoon Spawn Egg",
-	"item.silkworms.silk_moth_spawn_egg": "Silk Moth Spawn Egg"
+	"item.silkworms.silk_moth_spawn_egg": "Silk Moth Spawn Egg",
+	"silkworms.config.title": "Silkworms Settings",
+	"silkworms.config.grass_plants_required": "Grass Plants to Pupate",
+	"silkworms.config.eat_cooldown_min": "Eat Cooldown Min (s)",
+	"silkworms.config.eat_cooldown_max": "Eat Cooldown Max (s)",
+	"silkworms.config.cocoon_growth": "Cocoon Growth Time (s)",
+	"silkworms.config.moth_lifetime": "Moth Lifetime (s)",
+	"silkworms.config.natural_spawning": "Natural Silkworm Spawning (restart)"
 }

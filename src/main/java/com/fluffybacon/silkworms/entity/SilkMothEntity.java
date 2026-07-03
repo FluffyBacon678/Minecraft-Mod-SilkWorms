@@ -1,6 +1,7 @@
 package com.fluffybacon.silkworms.entity;
 
 import com.fluffybacon.silkworms.SilkwormsBalance;
+import com.fluffybacon.silkworms.SilkwormsConfig;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.control.FlightMoveControl;
 import net.minecraft.entity.ai.goal.Goal;
@@ -31,7 +32,7 @@ public class SilkMothEntity extends PathAwareEntity {
 	public SilkMothEntity(EntityType<? extends SilkMothEntity> entityType, World world) {
 		super(entityType, world);
 		this.moveControl = new FlightMoveControl(this, 20, true);
-		this.lifeTicks = SilkwormsBalance.SILK_MOTH_LIFETIME;
+		this.lifeTicks = SilkwormsConfig.get().silkMothLifetimeSeconds * 20;
 		this.setPersistent();
 		this.setNoGravity(true); // hovers gently instead of falling
 	}
@@ -87,7 +88,7 @@ public class SilkMothEntity extends PathAwareEntity {
 	@Override
 	protected void readCustomData(ReadView view) {
 		super.readCustomData(view);
-		this.lifeTicks = view.getInt("LifeTicks", SilkwormsBalance.SILK_MOTH_LIFETIME);
+		this.lifeTicks = view.getInt("LifeTicks", SilkwormsConfig.get().silkMothLifetimeSeconds * 20);
 	}
 
 	/** Picks a random nearby point (slightly biased upward) and drifts to it. */
