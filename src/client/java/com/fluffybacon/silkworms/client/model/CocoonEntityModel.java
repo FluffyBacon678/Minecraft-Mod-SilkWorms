@@ -34,10 +34,10 @@ public class CocoonEntityModel extends EntityModel<LivingEntityRenderState> {
 						.uv(0, 0).cuboid(-3.0F, -7.0F, -3.0F, 6.0F, 4.0F, 6.0F)
 						// upper shoulder (y 7-9)
 						.uv(26, 0).cuboid(-2.0F, -9.0F, -2.0F, 4.0F, 2.0F, 4.0F)
-						// top cap (y 9-10)
-						.uv(18, 16).cuboid(-1.0F, -10.0F, -1.0F, 2.0F, 1.0F, 2.0F)
-						// silk hang-strand (y 10-13)
-						.uv(28, 8).cuboid(-0.5F, -13.0F, -0.5F, 1.0F, 3.0F, 1.0F),
+						// wider flat top cap (y 9-10), per the build guide
+						.uv(18, 16).cuboid(-1.5F, -10.0F, -1.5F, 3.0F, 1.0F, 3.0F)
+						// short centered silk hang-strand (y 10-12)
+						.uv(28, 8).cuboid(-0.5F, -12.0F, -0.5F, 1.0F, 2.0F, 1.0F),
 				ModelTransform.origin(0.0F, 24.0F, 0.0F));
 		return TexturedModelData.of(modelData, 64, 64);
 	}

@@ -11,11 +11,10 @@ import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.util.math.MathHelper;
 
 /**
- * A gentle bee-sized moth, following the concept art: fuzzy boxy body, cute
- * square head with black eyes, two thin antennae and two large flat wings
- * (0-height quads, the same trick vanilla bees use). The wings flap softly
- * in {@link #setAngles}, driven by the render state's age — no animation
- * framework involved.
+ * Bee-sized moth following the build-guide reference: fuzzy thorax with a
+ * banded abdomen, square head, six dark legs, feathery flat antennae, and a
+ * fore + hind wing pair per side (0-height quads, vanilla-bee style). The
+ * wings flap gently in {@link #setAngles}; everything else is static.
  */
 public class SilkMothEntityModel extends EntityModel<LivingEntityRenderState> {
 	private final ModelPart rightWing;
@@ -30,29 +29,44 @@ public class SilkMothEntityModel extends EntityModel<LivingEntityRenderState> {
 	public static TexturedModelData getTexturedModelData() {
 		ModelData modelData = new ModelData();
 		ModelPartData root = modelData.getRoot();
-		// Fuzzy thorax + abdomen.
+		// Thorax + banded abdomen in one static part.
 		root.addChild("body",
-				ModelPartBuilder.create().uv(0, 0).cuboid(-2.0F, -1.5F, -3.0F, 4.0F, 3.0F, 6.0F),
-				ModelTransform.origin(0.0F, 20.0F, 0.5F));
-		// Cute square head at the front.
+				ModelPartBuilder.create()
+						.uv(0, 0).cuboid(-2.0F, -1.5F, -2.0F, 4.0F, 3.0F, 4.0F)
+						.uv(0, 8).cuboid(-1.5F, -1.0F, 2.0F, 3.0F, 2.0F, 3.0F),
+				ModelTransform.origin(0.0F, 20.0F, -0.5F));
+		// Square head at the front.
 		root.addChild("head",
-				ModelPartBuilder.create().uv(0, 12).cuboid(-1.5F, -1.5F, -2.0F, 3.0F, 3.0F, 2.0F),
-				ModelTransform.origin(0.0F, 20.0F, -2.5F));
-		// Two thin antennae, tilted forward and slightly outward.
+				ModelPartBuilder.create().uv(0, 16).cuboid(-1.5F, -1.5F, -2.0F, 3.0F, 3.0F, 2.0F),
+				ModelTransform.origin(0.0F, 20.0F, -3.5F));
+		// Six little legs under the thorax, one part with six cuboids.
+		root.addChild("legs",
+				ModelPartBuilder.create()
+						.uv(44, 8).cuboid(-2.0F, 0.0F, -2.0F, 1.0F, 2.0F, 1.0F)
+						.uv(44, 8).cuboid(-2.0F, 0.0F, -0.5F, 1.0F, 2.0F, 1.0F)
+						.uv(44, 8).cuboid(-2.0F, 0.0F, 1.0F, 1.0F, 2.0F, 1.0F)
+						.uv(44, 8).cuboid(1.0F, 0.0F, -2.0F, 1.0F, 2.0F, 1.0F)
+						.uv(44, 8).cuboid(1.0F, 0.0F, -0.5F, 1.0F, 2.0F, 1.0F)
+						.uv(44, 8).cuboid(1.0F, 0.0F, 1.0F, 1.0F, 2.0F, 1.0F),
+				ModelTransform.origin(0.0F, 21.5F, -0.5F));
+		// Feathery antennae: flat quads pitched up-forward.
 		root.addChild("right_antenna",
-				ModelPartBuilder.create().uv(12, 12).cuboid(-0.5F, -3.0F, -0.5F, 1.0F, 3.0F, 1.0F),
-				ModelTransform.of(-0.8F, 18.5F, -3.5F, -0.45F, 0.0F, -0.25F));
+				ModelPartBuilder.create().uv(44, 0).cuboid(-1.0F, 0.0F, -3.0F, 2.0F, 0.0F, 3.0F),
+				ModelTransform.of(-0.8F, 18.3F, -4.0F, -1.05F, 0.0F, -0.15F));
 		root.addChild("left_antenna",
-				ModelPartBuilder.create().uv(12, 12).cuboid(-0.5F, -3.0F, -0.5F, 1.0F, 3.0F, 1.0F),
-				ModelTransform.of(0.8F, 18.5F, -3.5F, -0.45F, 0.0F, 0.25F));
-		// Flat wing quads hinged at the body sides; pattern is symmetric about
-		// the wing centre, so both share one UV region.
+				ModelPartBuilder.create().mirrored().uv(44, 0).cuboid(-1.0F, 0.0F, -3.0F, 2.0F, 0.0F, 3.0F),
+				ModelTransform.of(0.8F, 18.3F, -4.0F, -1.05F, 0.0F, 0.15F));
+		// Fore + hind wing per side; hind sits slightly lower and behind.
 		root.addChild("right_wing",
-				ModelPartBuilder.create().uv(22, 0).cuboid(-7.0F, 0.0F, -3.0F, 7.0F, 0.0F, 6.0F),
-				ModelTransform.origin(-1.5F, 19.0F, 0.0F));
+				ModelPartBuilder.create()
+						.uv(20, 0).cuboid(-8.0F, 0.0F, -2.5F, 8.0F, 0.0F, 5.0F)
+						.uv(20, 8).cuboid(-6.0F, 0.3F, 1.0F, 6.0F, 0.0F, 4.0F),
+				ModelTransform.origin(-1.5F, 19.3F, -0.5F));
 		root.addChild("left_wing",
-				ModelPartBuilder.create().uv(22, 0).cuboid(0.0F, 0.0F, -3.0F, 7.0F, 0.0F, 6.0F),
-				ModelTransform.origin(1.5F, 19.0F, 0.0F));
+				ModelPartBuilder.create().mirrored()
+						.uv(20, 0).cuboid(0.0F, 0.0F, -2.5F, 8.0F, 0.0F, 5.0F)
+						.uv(20, 8).cuboid(0.0F, 0.3F, 1.0F, 6.0F, 0.0F, 4.0F),
+				ModelTransform.origin(1.5F, 19.3F, -0.5F));
 		return TexturedModelData.of(modelData, 64, 64);
 	}
 
