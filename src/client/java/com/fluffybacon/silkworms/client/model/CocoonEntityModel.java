@@ -9,7 +9,12 @@ import net.minecraft.client.model.TexturedModelData;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 
-/** A simple wrapped silk pod. */
+/**
+ * A wrapped silk pod, following the concept art: a compact banded body that is
+ * widest in the middle, tapers to a small tip at the bottom, and carries a
+ * small cap plus a thin silk hang-strand on top. Built from six stacked
+ * cuboids on a single static part so the renderer stays trivial.
+ */
 public class CocoonEntityModel extends EntityModel<LivingEntityRenderState> {
 	public CocoonEntityModel(ModelPart root) {
 		super(root);
@@ -18,14 +23,27 @@ public class CocoonEntityModel extends EntityModel<LivingEntityRenderState> {
 	public static TexturedModelData getTexturedModelData() {
 		ModelData modelData = new ModelData();
 		ModelPartData root = modelData.getRoot();
+		// One part, six cuboids, bottom to top (pivot y=24 is the ground plane).
 		root.addChild("pod",
-				ModelPartBuilder.create().uv(0, 0).cuboid(-3.0F, -12.0F, -3.0F, 6.0F, 12.0F, 6.0F),
+				ModelPartBuilder.create()
+						// tapered lower tip (y 0-1)
+						.uv(18, 12).cuboid(-1.0F, -1.0F, -1.0F, 2.0F, 1.0F, 2.0F)
+						// lower band (y 1-3)
+						.uv(0, 12).cuboid(-2.0F, -3.0F, -2.0F, 4.0F, 2.0F, 4.0F)
+						// main pod, widest (y 3-7)
+						.uv(0, 0).cuboid(-3.0F, -7.0F, -3.0F, 6.0F, 4.0F, 6.0F)
+						// upper shoulder (y 7-9)
+						.uv(26, 0).cuboid(-2.0F, -9.0F, -2.0F, 4.0F, 2.0F, 4.0F)
+						// top cap (y 9-10)
+						.uv(18, 16).cuboid(-1.0F, -10.0F, -1.0F, 2.0F, 1.0F, 2.0F)
+						// silk hang-strand (y 10-13)
+						.uv(28, 8).cuboid(-0.5F, -13.0F, -0.5F, 1.0F, 3.0F, 1.0F),
 				ModelTransform.origin(0.0F, 24.0F, 0.0F));
 		return TexturedModelData.of(modelData, 64, 64);
 	}
 
 	@Override
 	public void setAngles(LivingEntityRenderState state) {
-		// Static placeholder pose; no animation in version 1.
+		// Static pose; the cocoon does not animate in version 1.
 	}
 }
