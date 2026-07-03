@@ -7,6 +7,7 @@ import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.rule.GameRules;
 
 import java.util.EnumSet;
 
@@ -41,9 +42,12 @@ public class EatGrassVegetationGoal extends Goal {
 		if (!this.worm.isReadyToEat()) {
 			return false;
 		}
-		// NOTE: respecting the mobGriefing game rule is deferred to a later version —
-		// the 1.21.11 game-rule API was reworked (GameRule/getValue) and is not needed
-		// for a safe v1: grazing is already tiny, slow and limited to 4 plant blocks.
+		// Respect the vanilla mobGriefing rule: if it is off, worms don't eat vegetation.
+		// 1.21.11 moved game rules onto ServerWorld and reads them via getValue(GameRule).
+		if (this.world instanceof ServerWorld serverWorld
+				&& !serverWorld.getGameRules().getValue(GameRules.DO_MOB_GRIEFING)) {
+			return false;
+		}
 		// Only look occasionally so grazing stays slow and inexpensive.
 		if (this.worm.getRandom().nextInt(10) != 0) {
 			return false;
