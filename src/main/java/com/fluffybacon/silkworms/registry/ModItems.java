@@ -1,6 +1,7 @@
 package com.fluffybacon.silkworms.registry;
 
 import com.fluffybacon.silkworms.Silkworms;
+import com.fluffybacon.silkworms.item.SilkwormBucketItem;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
@@ -23,17 +24,27 @@ public final class ModItems {
 	public static Item SILKWORM_SPAWN_EGG;
 	public static Item COCOON_SPAWN_EGG;
 	public static Item SILK_MOTH_SPAWN_EGG;
+	public static Item SILKWORM_BUCKET;
 
 	public static void register() {
 		SILKWORM_SPAWN_EGG = registerSpawnEgg("silkworm_spawn_egg", ModEntities.SILKWORM);
 		COCOON_SPAWN_EGG = registerSpawnEgg("cocoon_spawn_egg", ModEntities.COCOON);
 		SILK_MOTH_SPAWN_EGG = registerSpawnEgg("silk_moth_spawn_egg", ModEntities.SILK_MOTH);
 
+		RegistryKey<Item> bucketKey = RegistryKey.of(RegistryKeys.ITEM, Silkworms.id("silkworm_bucket"));
+		SILKWORM_BUCKET = Registry.register(Registries.ITEM, bucketKey,
+				new SilkwormBucketItem(new Item.Settings()
+						.registryKey(bucketKey)
+						.maxCount(1)
+						.component(ModComponents.SILKWORM_COUNT, 1)));
+
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> {
 			entries.add(SILKWORM_SPAWN_EGG);
 			entries.add(COCOON_SPAWN_EGG);
 			entries.add(SILK_MOTH_SPAWN_EGG);
 		});
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(entries ->
+				entries.add(SILKWORM_BUCKET));
 	}
 
 	private static Item registerSpawnEgg(String name, EntityType<?> type) {

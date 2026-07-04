@@ -5,6 +5,8 @@
 	"item.silkworms.silkworm_spawn_egg": "Silkworm Spawn Egg",
 	"item.silkworms.cocoon_spawn_egg": "Cocoon Spawn Egg",
 	"item.silkworms.silk_moth_spawn_egg": "Silk Moth Spawn Egg",
+	"item.silkworms.silkworm_bucket": "Silkworm Bucket",
+	"item.silkworms.silkworm_bucket.count": "Silkworms: %s/%s",
 	"silkworms.config.title": "Silkworms Settings",
 	"silkworms.config.grass_plants_required": "Grass Plants to Pupate",
 	"silkworms.config.eat_cooldown_min": "Eat Cooldown Min (s)",

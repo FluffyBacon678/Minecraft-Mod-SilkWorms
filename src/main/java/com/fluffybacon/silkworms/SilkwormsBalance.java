@@ -52,6 +52,10 @@ public final class SilkwormsBalance {
 	/** Give up seeking after this many ticks and pupate on the ground (60s). */
 	public static final int HANG_SEEK_TIMEOUT = 1200;
 
+	// --- Silkworm bucket (v0.4) ---
+	/** Worms one bucket can carry. */
+	public static final int SILKWORM_BUCKET_CAPACITY = 5;
+
 	// --- Silk moth taming / companion (v0.3) ---
 	/** Cherry-leaves feedings needed to tame a moth. */
 	public static final int MOTH_TAME_FEEDS = 3;
