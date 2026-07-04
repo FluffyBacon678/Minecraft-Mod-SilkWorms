@@ -42,4 +42,35 @@ public final class SilkwormsBalance {
 	public static final int SILKWORM_SPAWN_WEIGHT = 8;
 	public static final int SILKWORM_MIN_GROUP_SIZE = 1;
 	public static final int SILKWORM_MAX_GROUP_SIZE = 3;
+
+	// --- Cocoon hanging (v0.3) ---
+	/** Horizontal radius / upward reach when a full worm looks for a hang spot. */
+	public static final int HANG_SEARCH_RADIUS = 4;
+	public static final int HANG_SEARCH_HEIGHT = 5;
+	/** Random spots sampled per attempt (one attempt per second while seeking). */
+	public static final int HANG_SAMPLES_PER_ATTEMPT = 12;
+	/** Give up seeking after this many ticks and pupate on the ground (60s). */
+	public static final int HANG_SEEK_TIMEOUT = 1200;
+
+	// --- Silk moth taming / companion (v0.3) ---
+	/** Cherry-leaves feedings needed to tame a moth. */
+	public static final int MOTH_TAME_FEEDS = 3;
+	public static final double MOTH_TAMED_MAX_HEALTH = 12.0;
+	public static final double MOTH_ATTACK_DAMAGE = 2.0;
+	/** Follow starts beyond this distance, stops inside the inner one. */
+	public static final double FOLLOW_START_DISTANCE = 6.0;
+	public static final double FOLLOW_STOP_DISTANCE = 3.5;
+	/** Beyond this the moth flies at catch-up speed. */
+	public static final double CATCHUP_DISTANCE = 14.0;
+	public static final double FOLLOW_SPEED = 1.15;
+	public static final double CATCHUP_SPEED = 2.0;
+	/** Relocate (teleport) thresholds; tighter when the owner is gliding. */
+	public static final double TELEPORT_DISTANCE = 32.0;
+	public static final double TELEPORT_DISTANCE_GLIDING = 20.0;
+	/** Wild/idle flight stays within this height above the local surface. */
+	public static final int WANDER_MAX_HEIGHT_ABOVE_GROUND = 6;
+	/** Resting: roughly once per this many idle checks; rest length in ticks. */
+	public static final int REST_CHANCE = 300;
+	public static final int REST_MIN_TICKS = 100;
+	public static final int REST_MAX_TICKS = 220;
 }

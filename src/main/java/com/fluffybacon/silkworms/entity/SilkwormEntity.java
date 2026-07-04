@@ -17,10 +17,15 @@ import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.ServerWorldAccess;
@@ -28,13 +33,18 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A tiny, passive ground creature that slowly grazes grass vegetation.
- * After eating {@link SilkwormsBalance#GRASS_PLANTS_REQUIRED} valid plants it
- * turns into a {@link CocoonEntity}. It never touches the ground block itself.
+ * A tiny, passive ground creature that grazes grass vegetation (never the
+ * ground block itself) and can also be hand-fed grass items or any leaves.
+ * Once full, it looks for a nearby block underside to hang from and pupates
+ * into a {@link CocoonEntity} there — falling back to a ground cocoon if no
+ * hang spot turns up in time, so worms in open plains never get stuck.
  */
 public class SilkwormEntity extends AnimalEntity {
 	private int eatenPlants;
 	private int eatCooldown;
+	@Nullable
+	private BlockPos hangTarget;
+	private int seekTicks;
 
 	public SilkwormEntity(EntityType<? extends SilkwormEntity> entityType, World world) {
 		super(entityType, world);
@@ -82,6 +92,33 @@ public class SilkwormEntity extends AnimalEntity {
 		this.eatCooldown = randomEatCooldown();
 	}
 
+	/** Grass items or any leaves speed the worm toward pupation. */
+	private static boolean isFeedItem(ItemStack stack) {
+		return stack.isIn(ItemTags.LEAVES)
+				|| stack.isOf(Items.SHORT_GRASS)
+				|| stack.isOf(Items.TALL_GRASS)
+				|| stack.isOf(Items.FERN)
+				|| stack.isOf(Items.LARGE_FERN);
+	}
+
+	@Override
+	public ActionResult interactMob(PlayerEntity player, Hand hand) {
+		ItemStack stack = player.getStackInHand(hand);
+		if (isFeedItem(stack) && this.eatenPlants < SilkwormsConfig.get().grassPlantsRequired) {
+			if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
+				if (!player.isCreative()) {
+					stack.decrement(1);
+				}
+				this.eatenPlants++;
+				serverWorld.spawnParticles(ParticleTypes.HAPPY_VILLAGER,
+						this.getX(), this.getY() + 0.3, this.getZ(), 4, 0.2, 0.2, 0.2, 0.02);
+				return ActionResult.SUCCESS_SERVER;
+			}
+			return ActionResult.SUCCESS;
+		}
+		return super.interactMob(player, hand);
+	}
+
 	@Override
 	public void tick() {
 		super.tick();
@@ -90,16 +127,72 @@ public class SilkwormEntity extends AnimalEntity {
 		}
 		if (!this.getEntityWorld().isClient() && !this.isRemoved()
 				&& this.eatenPlants >= SilkwormsConfig.get().grassPlantsRequired) {
-			transformIntoCocoon();
+			tickPupation();
 		}
 	}
 
-	private void transformIntoCocoon() {
+	/**
+	 * Full worms spend up to {@link SilkwormsBalance#HANG_SEEK_TIMEOUT} ticks
+	 * looking for a block underside to hang from, crawling toward it once
+	 * found; after the timeout they pupate right where they are.
+	 */
+	private void tickPupation() {
+		this.seekTicks++;
+		World world = this.getEntityWorld();
+		if (this.hangTarget != null && !CocoonEntity.canHangUnder(world, this.hangTarget)) {
+			this.hangTarget = null;
+		}
+		if (this.hangTarget == null && this.seekTicks % 20 == 0
+				&& this.seekTicks < SilkwormsBalance.HANG_SEEK_TIMEOUT) {
+			this.hangTarget = findHangSupport();
+		}
+		if (this.hangTarget != null) {
+			double dx = this.hangTarget.getX() + 0.5 - this.getX();
+			double dz = this.hangTarget.getZ() + 0.5 - this.getZ();
+			if (dx * dx + dz * dz < 2.25) {
+				becomeCocoon(this.hangTarget);
+				return;
+			}
+			if (this.getNavigation().isIdle()) {
+				this.getNavigation().startMovingTo(
+						this.hangTarget.getX() + 0.5, this.getY(), this.hangTarget.getZ() + 0.5, 1.0);
+			}
+		} else if (this.seekTicks >= SilkwormsBalance.HANG_SEEK_TIMEOUT) {
+			becomeCocoon(null);
+		}
+	}
+
+	/** Samples a few random nearby positions for a valid hang support. */
+	@Nullable
+	private BlockPos findHangSupport() {
+		BlockPos origin = this.getBlockPos();
+		int r = SilkwormsBalance.HANG_SEARCH_RADIUS;
+		for (int i = 0; i < SilkwormsBalance.HANG_SAMPLES_PER_ATTEMPT; i++) {
+			BlockPos candidate = origin.add(
+					this.random.nextInt(2 * r + 1) - r,
+					1 + this.random.nextInt(SilkwormsBalance.HANG_SEARCH_HEIGHT),
+					this.random.nextInt(2 * r + 1) - r);
+			if (CocoonEntity.canHangUnder(this.getEntityWorld(), candidate)) {
+				return candidate;
+			}
+		}
+		return null;
+	}
+
+	/** Spawns the cocoon (hanging under {@code support} if given) and discards the worm. */
+	private void becomeCocoon(@Nullable BlockPos support) {
 		if (!(this.getEntityWorld() instanceof ServerWorld serverWorld)) {
 			return;
 		}
 		CocoonEntity cocoon = new CocoonEntity(ModEntities.COCOON, serverWorld);
-		cocoon.refreshPositionAndAngles(this.getX(), this.getY(), this.getZ(), this.getYaw(), 0.0F);
+		if (support != null) {
+			cocoon.refreshPositionAndAngles(support.getX() + 0.5,
+					support.getY() - SilkwormsBalance.COCOON_HEIGHT, support.getZ() + 0.5,
+					this.getYaw(), 0.0F);
+			cocoon.startHanging();
+		} else {
+			cocoon.refreshPositionAndAngles(this.getX(), this.getY(), this.getZ(), this.getYaw(), 0.0F);
+		}
 		serverWorld.spawnEntity(cocoon);
 		this.discard();
 	}
@@ -107,12 +200,12 @@ public class SilkwormEntity extends AnimalEntity {
 	@Nullable
 	@Override
 	public PassiveEntity createChild(ServerWorld world, PassiveEntity entity) {
-		return null; // No breeding in version 1.
+		return null; // No breeding in this version.
 	}
 
 	@Override
 	public boolean isBreedingItem(ItemStack stack) {
-		return false; // No breeding in version 1.
+		return false; // Feeding is handled in interactMob instead.
 	}
 
 	@Override

@@ -2,23 +2,31 @@ package com.fluffybacon.silkworms.entity;
 
 import com.fluffybacon.silkworms.SilkwormsConfig;
 import com.fluffybacon.silkworms.registry.ModEntities;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.storage.ReadView;
 import net.minecraft.storage.WriteView;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 /**
- * The stationary pupa stage. It sits still, counts down a growth timer that
- * survives world reloads, then hatches exactly one {@link SilkMothEntity}.
+ * The stationary pupa stage. It prefers to hang from the underside of a block
+ * (leaves, logs, ceilings) — the natural spot the worm seeks out. While
+ * hanging it grows at full speed; a cocoon on the ground (fallback, or after
+ * its support block was broken) still grows, just at half speed. Hatches
+ * exactly one {@link SilkMothEntity}.
  */
 public class CocoonEntity extends PathAwareEntity {
 	private int growthTimer;
+	private boolean hanging;
 
 	public CocoonEntity(EntityType<? extends CocoonEntity> entityType, World world) {
 		super(entityType, world);
@@ -30,6 +38,25 @@ public class CocoonEntity extends PathAwareEntity {
 	public static DefaultAttributeContainer.Builder createCocoonAttributes() {
 		return MobEntity.createMobAttributes()
 				.add(EntityAttributes.MAX_HEALTH, 6.0);
+	}
+
+	/** True if a cocoon could hang beneath {@code support}: solid bottom face
+	 * (or leaves) with a free air block underneath. */
+	public static boolean canHangUnder(World world, BlockPos support) {
+		BlockState state = world.getBlockState(support);
+		boolean solidBelowFace = state.isIn(BlockTags.LEAVES)
+				|| state.isSideSolidFullSquare(world, support, Direction.DOWN);
+		return solidBelowFace && world.getBlockState(support.down()).isAir();
+	}
+
+	/** Anchors the cocoon in the air under its support block. */
+	public void startHanging() {
+		this.hanging = true;
+		this.setNoGravity(true);
+	}
+
+	public boolean isHanging() {
+		return this.hanging;
 	}
 
 	@Override
@@ -48,8 +75,22 @@ public class CocoonEntity extends PathAwareEntity {
 		if (this.getEntityWorld().isClient() || this.isRemoved()) {
 			return;
 		}
+		// Detach if the support block disappears; keep growing on the ground.
+		if (this.hanging && this.age % 20 == 0) {
+			BlockPos support = this.getBlockPos().up();
+			BlockState state = this.getEntityWorld().getBlockState(support);
+			boolean stillSupported = state.isIn(BlockTags.LEAVES)
+					|| state.isSideSolidFullSquare(this.getEntityWorld(), support, Direction.DOWN);
+			if (!stillSupported) {
+				this.hanging = false;
+				this.setNoGravity(false);
+			}
+		}
 		if (this.growthTimer > 0) {
-			this.growthTimer--;
+			// Hanging cocoons grow at full speed, grounded ones at half speed.
+			if (this.hanging || this.age % 2 == 0) {
+				this.growthTimer--;
+			}
 		} else {
 			hatchIntoMoth();
 		}
@@ -71,11 +112,14 @@ public class CocoonEntity extends PathAwareEntity {
 	protected void writeCustomData(WriteView view) {
 		super.writeCustomData(view);
 		view.putInt("GrowthTimer", this.growthTimer);
+		view.putBoolean("Hanging", this.hanging);
 	}
 
 	@Override
 	protected void readCustomData(ReadView view) {
 		super.readCustomData(view);
 		this.growthTimer = view.getInt("GrowthTimer", SilkwormsConfig.get().cocoonGrowthSeconds * 20);
+		this.hanging = view.getBoolean("Hanging", false);
+		this.setNoGravity(this.hanging);
 	}
 }
