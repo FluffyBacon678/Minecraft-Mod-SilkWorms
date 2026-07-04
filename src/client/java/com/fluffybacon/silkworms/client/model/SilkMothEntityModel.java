@@ -6,8 +6,8 @@ import net.minecraft.client.model.ModelPartBuilder;
 import net.minecraft.client.model.ModelPartData;
 import net.minecraft.client.model.ModelTransform;
 import net.minecraft.client.model.TexturedModelData;
+import com.fluffybacon.silkworms.client.render.SilkMothEntityRenderState;
 import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.util.math.MathHelper;
 
 /**
@@ -16,14 +16,16 @@ import net.minecraft.util.math.MathHelper;
  * fore + hind wing pair per side (0-height quads, vanilla-bee style). The
  * wings flap gently in {@link #setAngles}; everything else is static.
  */
-public class SilkMothEntityModel extends EntityModel<LivingEntityRenderState> {
+public class SilkMothEntityModel extends EntityModel<SilkMothEntityRenderState> {
 	private final ModelPart rightWing;
 	private final ModelPart leftWing;
+	private final ModelPart saddle;
 
 	public SilkMothEntityModel(ModelPart root) {
 		super(root);
 		this.rightWing = root.getChild("right_wing");
 		this.leftWing = root.getChild("left_wing");
+		this.saddle = root.getChild("saddle");
 	}
 
 	public static TexturedModelData getTexturedModelData() {
@@ -67,15 +69,27 @@ public class SilkMothEntityModel extends EntityModel<LivingEntityRenderState> {
 						.uv(20, 0).cuboid(0.0F, 0.0F, -2.5F, 8.0F, 0.0F, 5.0F)
 						.uv(20, 8).cuboid(0.0F, 0.3F, 1.0F, 6.0F, 0.0F, 4.0F),
 				ModelTransform.origin(1.5F, 19.3F, -0.5F));
+		// Harness: small pad on the thorax, thin straps wrapping the body and a
+		// tiny pommel. Hidden unless the moth is tamed (toggled in setAngles).
+		root.addChild("saddle",
+				ModelPartBuilder.create()
+						.uv(0, 24).cuboid(-1.5F, -1.0F, -1.5F, 3.0F, 1.0F, 3.0F)
+						.uv(32, 24).cuboid(-0.5F, -1.75F, -1.5F, 1.0F, 0.75F, 0.75F)
+						.uv(14, 24).cuboid(2.0F, 0.0F, -0.5F, 0.5F, 3.5F, 1.0F)
+						.uv(14, 24).cuboid(-2.5F, 0.0F, -0.5F, 0.5F, 3.5F, 1.0F)
+						.uv(20, 24).cuboid(-2.0F, 3.0F, -0.5F, 4.0F, 0.5F, 1.0F),
+				ModelTransform.origin(0.0F, 18.5F, -0.5F));
 		return TexturedModelData.of(modelData, 64, 64);
 	}
 
 	@Override
-	public void setAngles(LivingEntityRenderState state) {
+	public void setAngles(SilkMothEntityRenderState state) {
 		super.setAngles(state);
 		// Slow soft flutter (~0.45 rad), much gentler than a bee's buzz.
 		float flap = MathHelper.cos(state.age * 0.7F) * 0.45F - 0.15F;
 		this.rightWing.roll = -flap;
 		this.leftWing.roll = flap;
+		// The harness only shows on tamed companions.
+		this.saddle.visible = state.saddled;
 	}
 }
