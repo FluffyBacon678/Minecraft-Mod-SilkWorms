@@ -11,7 +11,9 @@ import net.minecraft.util.math.random.Random;
  * chance (higher = more common).
  */
 public enum SilkwormVariant {
-	CREAM("cream", 100, Silkworms.id("textures/entity/silkworm.png")),
+	CREAM("cream", 100,
+			Silkworms.id("textures/entity/silkworm.png"),
+			Silkworms.id("textures/entity/cocoon.png")),
 	MULBERRY_GREEN("mulberry_green", 45),
 	MOSSY_SILK("mossy_silk", 30),
 	ASH_GRAY("ash_gray", 30),
@@ -25,15 +27,19 @@ public enum SilkwormVariant {
 	private final String name;
 	private final int weight;
 	private final Identifier texture;
+	private final Identifier cocoonTexture;
 
-	SilkwormVariant(String name, int weight, Identifier texture) {
+	SilkwormVariant(String name, int weight, Identifier texture, Identifier cocoonTexture) {
 		this.name = name;
 		this.weight = weight;
 		this.texture = texture;
+		this.cocoonTexture = cocoonTexture;
 	}
 
 	SilkwormVariant(String name, int weight) {
-		this(name, weight, Silkworms.id("textures/entity/silkworm/" + name + ".png"));
+		this(name, weight,
+				Silkworms.id("textures/entity/silkworm/" + name + ".png"),
+				Silkworms.id("textures/entity/cocoon/" + name + ".png"));
 	}
 
 	public int getId() {
@@ -46,6 +52,11 @@ public enum SilkwormVariant {
 
 	public Identifier getTexture() {
 		return this.texture;
+	}
+
+	/** Subtle cocoon tint that matches this worm morph. */
+	public Identifier getCocoonTexture() {
+		return this.cocoonTexture;
 	}
 
 	public static SilkwormVariant byId(int id) {

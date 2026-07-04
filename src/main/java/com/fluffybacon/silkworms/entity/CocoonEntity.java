@@ -6,6 +6,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.particle.ParticleTypes;
@@ -25,6 +28,9 @@ import net.minecraft.world.World;
  * exactly one {@link SilkMothEntity}.
  */
 public class CocoonEntity extends PathAwareEntity {
+	private static final TrackedData<Integer> VARIANT =
+			DataTracker.registerData(CocoonEntity.class, TrackedDataHandlerRegistry.INTEGER);
+
 	private int growthTimer;
 	private boolean hanging;
 
@@ -33,6 +39,21 @@ public class CocoonEntity extends PathAwareEntity {
 		this.growthTimer = SilkwormsConfig.get().cocoonGrowthSeconds * 20;
 		this.setPersistent();
 		this.setAiDisabled(true); // fully stationary; no goals, no looking around
+	}
+
+	@Override
+	protected void initDataTracker(DataTracker.Builder builder) {
+		super.initDataTracker(builder);
+		builder.add(VARIANT, 0);
+	}
+
+	public SilkwormVariant getVariant() {
+		return SilkwormVariant.byId(this.dataTracker.get(VARIANT));
+	}
+
+	/** Set once at pupation so the cocoon matches the worm it came from. */
+	public void setVariant(SilkwormVariant variant) {
+		this.dataTracker.set(VARIANT, variant.getId());
 	}
 
 	public static DefaultAttributeContainer.Builder createCocoonAttributes() {
@@ -113,6 +134,7 @@ public class CocoonEntity extends PathAwareEntity {
 		super.writeCustomData(view);
 		view.putInt("GrowthTimer", this.growthTimer);
 		view.putBoolean("Hanging", this.hanging);
+		view.putInt("Variant", getVariant().getId());
 	}
 
 	@Override
@@ -120,6 +142,7 @@ public class CocoonEntity extends PathAwareEntity {
 		super.readCustomData(view);
 		this.growthTimer = view.getInt("GrowthTimer", SilkwormsConfig.get().cocoonGrowthSeconds * 20);
 		this.hanging = view.getBoolean("Hanging", false);
+		setVariant(SilkwormVariant.byId(view.getInt("Variant", 0)));
 		this.setNoGravity(this.hanging);
 	}
 }

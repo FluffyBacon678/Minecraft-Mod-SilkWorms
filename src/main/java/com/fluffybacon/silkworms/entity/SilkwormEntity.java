@@ -38,6 +38,8 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
@@ -141,10 +143,11 @@ public class SilkwormEntity extends AnimalEntity {
 	@Override
 	public ActionResult interactMob(PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getStackInHand(hand);
-		// Empty bucket -> silkworm bucket with one worm (vanilla cow-milking pattern).
+		// Empty bucket -> silkworm bucket remembering this worm's variant.
 		if (stack.isOf(Items.BUCKET)) {
 			if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
 				ItemStack filled = new ItemStack(ModItems.SILKWORM_BUCKET);
+				filled.set(ModComponents.SILKWORM_VARIANTS, List.of(getVariant().getId()));
 				filled.set(ModComponents.SILKWORM_COUNT, 1);
 				player.setStackInHand(hand, ItemUsage.exchangeStack(stack, player, filled));
 				serverWorld.playSound(null, this.getBlockPos(),
@@ -159,7 +162,15 @@ public class SilkwormEntity extends AnimalEntity {
 			int count = SilkwormBucketItem.getCount(stack);
 			if (count < SilkwormsBalance.SILKWORM_BUCKET_CAPACITY) {
 				if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
-					stack.set(ModComponents.SILKWORM_COUNT, count + 1);
+					// Build on the stored list, migrating a legacy count-only
+					// bucket by filling its unknown worms with random variants.
+					List<Integer> ids = new ArrayList<>(SilkwormBucketItem.getVariantIds(stack));
+					while (ids.size() < count) {
+						ids.add(SilkwormVariant.pickWeighted(this.random).getId());
+					}
+					ids.add(getVariant().getId());
+					stack.set(ModComponents.SILKWORM_VARIANTS, List.copyOf(ids));
+					stack.set(ModComponents.SILKWORM_COUNT, ids.size());
 					serverWorld.playSound(null, this.getBlockPos(),
 							SoundEvents.ITEM_BUCKET_FILL_FISH, SoundCategory.NEUTRAL, 1.0F, 1.0F);
 					this.discard();
@@ -250,6 +261,7 @@ public class SilkwormEntity extends AnimalEntity {
 			return;
 		}
 		CocoonEntity cocoon = new CocoonEntity(ModEntities.COCOON, serverWorld);
+		cocoon.setVariant(getVariant()); // cocoon inherits the worm's colour
 		if (support != null) {
 			cocoon.refreshPositionAndAngles(support.getX() + 0.5,
 					support.getY() - SilkwormsBalance.COCOON_HEIGHT, support.getZ() + 0.5,
