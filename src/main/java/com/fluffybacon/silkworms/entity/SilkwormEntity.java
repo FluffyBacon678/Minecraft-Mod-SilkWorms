@@ -180,12 +180,24 @@ public class SilkwormEntity extends AnimalEntity {
 			}
 			return ActionResult.PASS; // bucket is full
 		}
-		if (isFeedItem(stack) && this.eatenPlants < SilkwormsConfig.get().grassPlantsRequired) {
+		if (isFeedItem(stack)) {
 			if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
+				// Only consume the food if it actually does something: advance
+				// growth toward pupation, or (if already full-grown) heal.
+				boolean changed = false;
+				if (this.eatenPlants < SilkwormsConfig.get().grassPlantsRequired) {
+					this.eatenPlants++;
+					changed = true;
+				} else if (this.getHealth() < this.getMaxHealth()) {
+					this.heal(SilkwormsBalance.SILKWORM_FEED_HEAL);
+					changed = true;
+				}
+				if (!changed) {
+					return super.interactMob(player, hand); // full-grown + healthy: no effect, no consume
+				}
 				if (!player.isCreative()) {
 					stack.decrement(1);
 				}
-				this.eatenPlants++;
 				serverWorld.spawnParticles(ParticleTypes.HAPPY_VILLAGER,
 						this.getX(), this.getY() + 0.3, this.getZ(), 4, 0.2, 0.2, 0.2, 0.02);
 				return ActionResult.SUCCESS_SERVER;

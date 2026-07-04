@@ -107,19 +107,33 @@ public class SilkMothEntity extends TameableEntity {
 	@Override
 	public ActionResult interactMob(PlayerEntity player, Hand hand) {
 		ItemStack stack = player.getStackInHand(hand);
-		if (!this.isTamed() && stack.isOf(Items.CHERRY_LEAVES)) {
+		if (stack.isOf(Items.CHERRY_LEAVES)) {
 			if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
+				if (!this.isTamed()) {
+					// Untamed: a cherry-leaf feed always advances taming.
+					if (!player.isCreative()) {
+						stack.decrement(1);
+					}
+					this.tameFeeds++;
+					if (this.tameFeeds >= SilkwormsBalance.MOTH_TAME_FEEDS) {
+						this.setTamedBy(player);
+						this.getEntityWorld().sendEntityStatus(this, (byte) 7); // heart particles
+					} else {
+						this.getEntityWorld().sendEntityStatus(this, (byte) 6); // smoke particles
+					}
+					serverWorld.spawnParticles(ParticleTypes.HAPPY_VILLAGER,
+							this.getX(), this.getY() + 0.3, this.getZ(), 3, 0.2, 0.2, 0.2, 0.02);
+					return ActionResult.SUCCESS_SERVER;
+				}
+				// Tamed: cherry leaves only heal, and only when actually damaged.
+				if (this.getHealth() >= this.getMaxHealth()) {
+					return super.interactMob(player, hand); // full health: no effect, no consume
+				}
+				this.heal(SilkwormsBalance.MOTH_FEED_HEAL);
 				if (!player.isCreative()) {
 					stack.decrement(1);
 				}
-				this.tameFeeds++;
-				if (this.tameFeeds >= SilkwormsBalance.MOTH_TAME_FEEDS) {
-					this.setTamedBy(player);
-					this.getEntityWorld().sendEntityStatus(this, (byte) 7); // heart particles
-				} else {
-					this.getEntityWorld().sendEntityStatus(this, (byte) 6); // smoke particles
-				}
-				serverWorld.spawnParticles(ParticleTypes.HAPPY_VILLAGER,
+				serverWorld.spawnParticles(ParticleTypes.HEART,
 						this.getX(), this.getY() + 0.3, this.getZ(), 3, 0.2, 0.2, 0.2, 0.02);
 				return ActionResult.SUCCESS_SERVER;
 			}

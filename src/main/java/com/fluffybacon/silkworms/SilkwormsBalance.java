@@ -56,6 +56,12 @@ public final class SilkwormsBalance {
 	/** Worms one bucket can carry. */
 	public static final int SILKWORM_BUCKET_CAPACITY = 5;
 
+	// --- Feeding heal amounts (v0.4.2) ---
+	/** Health a grass/leaf feed restores to a full-grown, damaged silkworm. */
+	public static final float SILKWORM_FEED_HEAL = 2.0F;
+	/** Health a cherry-leaf feed restores to a damaged tamed silk moth. */
+	public static final float MOTH_FEED_HEAL = 4.0F;
+
 	// --- Silk moth taming / companion (v0.3) ---
 	/** Cherry-leaves feedings needed to tame a moth. */
 	public static final int MOTH_TAME_FEEDS = 3;
