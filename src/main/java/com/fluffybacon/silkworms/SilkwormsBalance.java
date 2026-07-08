@@ -62,6 +62,16 @@ public final class SilkwormsBalance {
 	/** Health a cherry-leaf feed restores to a damaged tamed silk moth. */
 	public static final float MOTH_FEED_HEAL = 4.0F;
 
+	// --- Rideable moth flight (v0.5.0) ---
+	// Mirrors the vanilla Happy Ghast controlled-flight path exactly; only the
+	// base speed differs. Acceleration and idle decay are inherent to vanilla
+	// travelFlying (updateVelocity accumulation + 0.91 air drag), so they are
+	// not separate knobs here.
+	/** Base flight speed while ridden. Happy Ghast uses 0.05; this is ~2x. */
+	public static final double MOUNT_FLYING_SPEED = 0.10;
+	/** Upward push while holding jump (vanilla ghast value, scaled by speed). */
+	public static final double MOUNT_JUMP_LIFT = 0.5;
+
 	// --- Silk moth taming / companion (v0.3) ---
 	/** Cherry-leaves feedings needed to tame a moth. */
 	public static final int MOTH_TAME_FEEDS = 3;

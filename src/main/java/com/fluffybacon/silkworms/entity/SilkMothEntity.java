@@ -2,6 +2,7 @@ package com.fluffybacon.silkworms.entity;
 
 import com.fluffybacon.silkworms.SilkwormsBalance;
 import com.fluffybacon.silkworms.SilkwormsConfig;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LazyEntityReference;
 import net.minecraft.entity.LivingEntity;
@@ -33,6 +34,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -139,7 +141,81 @@ public class SilkMothEntity extends TameableEntity {
 			}
 			return ActionResult.SUCCESS;
 		}
+		// Owner rides an empty-handed, tamed, un-leashed, un-ridden moth.
+		if (this.isTamed() && this.isOwner(player) && stack.isEmpty()
+				&& !this.isLeashed() && !this.hasPassengers()) {
+			if (!this.getEntityWorld().isClient()) {
+				player.startRiding(this);
+			}
+			return ActionResult.SUCCESS;
+		}
 		return super.interactMob(player, hand);
+	}
+
+	// ---- Rideable mount (v0.5.0): mirrors the vanilla Happy Ghast control path ----
+
+	@Nullable
+	@Override
+	public LivingEntity getControllingPassenger() {
+		return this.isTamed() && this.getFirstPassenger() instanceof PlayerEntity player && this.isOwner(player)
+				? player
+				: super.getControllingPassenger();
+	}
+
+	@Override
+	protected boolean canAddPassenger(Entity passenger) {
+		return this.getPassengerList().isEmpty(); // exactly one rider
+	}
+
+	@Override
+	public boolean canBeLeashed() {
+		return !this.hasPassengers(); // never leash a moth that is being ridden
+	}
+
+	@Override
+	protected Vec3d getControlledMovementInput(PlayerEntity controllingPlayer, Vec3d movementInput) {
+		float strafe = controllingPlayer.sidewaysSpeed;
+		float up = 0.0F;
+		float forward = 0.0F;
+		if (controllingPlayer.forwardSpeed != 0.0F) {
+			// Flight follows the rider's look: looking down descends, up climbs.
+			float pitchCos = MathHelper.cos(controllingPlayer.getPitch() * (float) (Math.PI / 180.0));
+			float pitchSin = -MathHelper.sin(controllingPlayer.getPitch() * (float) (Math.PI / 180.0));
+			if (controllingPlayer.forwardSpeed < 0.0F) {
+				pitchCos *= -0.5F;
+				pitchSin *= -0.5F;
+			}
+			up = pitchSin;
+			forward = pitchCos;
+		}
+		if (controllingPlayer.isJumping()) {
+			up += (float) SilkwormsBalance.MOUNT_JUMP_LIFT;
+		}
+		return new Vec3d(strafe, up, forward).multiply(3.9 * SilkwormsBalance.MOUNT_FLYING_SPEED);
+	}
+
+	@Override
+	protected void tickControlled(PlayerEntity controllingPlayer, Vec3d movementInput) {
+		super.tickControlled(controllingPlayer, movementInput);
+		float yaw = this.getYaw();
+		yaw += MathHelper.wrapDegrees(controllingPlayer.getYaw() - yaw) * 0.08F; // eased turn
+		this.setRotation(yaw, controllingPlayer.getPitch() * 0.5F);
+		this.lastYaw = this.bodyYaw = this.headYaw = yaw;
+	}
+
+	@Override
+	public void travel(Vec3d movementInput) {
+		if (this.getControllingPassenger() instanceof PlayerEntity) {
+			this.travelFlying(movementInput, (float) (SilkwormsBalance.MOUNT_FLYING_SPEED * 5.0 / 3.0));
+		} else {
+			super.travel(movementInput);
+		}
+	}
+
+	@Override
+	public Vec3d updatePassengerForDismount(LivingEntity passenger) {
+		// Drop the rider on top of the moth — guaranteed open air, never in a block.
+		return new Vec3d(this.getX(), this.getBoundingBox().maxY, this.getZ());
 	}
 
 	/** Tamed moths become sturdier, permanent companions. */
@@ -160,6 +236,13 @@ public class SilkMothEntity extends TameableEntity {
 	public void tick() {
 		super.tick();
 		if (this.getEntityWorld().isClient() || this.isRemoved()) {
+			return;
+		}
+		// While ridden the rider has full control: pause AI targeting/navigation
+		// so nothing fights the flight controls.
+		if (this.hasPassengers()) {
+			this.setTarget(null);
+			this.getNavigation().stop();
 			return;
 		}
 		// Only wild moths age; tamed companions never die of old age.
@@ -220,7 +303,7 @@ public class SilkMothEntity extends TameableEntity {
 
 		@Override
 		public boolean canStart() {
-			if (!SilkMothEntity.this.isTamed()) {
+			if (!SilkMothEntity.this.isTamed() || SilkMothEntity.this.hasPassengers()) {
 				return false;
 			}
 			LivingEntity owner = SilkMothEntity.this.getOwnerEntity();
@@ -231,6 +314,9 @@ public class SilkMothEntity extends TameableEntity {
 
 		@Override
 		public boolean shouldContinue() {
+			if (SilkMothEntity.this.hasPassengers()) {
+				return false;
+			}
 			LivingEntity owner = SilkMothEntity.this.getOwnerEntity();
 			return owner != null && owner.isAlive()
 					&& SilkMothEntity.this.squaredDistanceTo(owner)
@@ -308,7 +394,8 @@ public class SilkMothEntity extends TameableEntity {
 
 		@Override
 		public boolean canStart() {
-			if (!SilkMothEntity.this.getNavigation().isIdle()
+			if (SilkMothEntity.this.hasPassengers()
+					|| !SilkMothEntity.this.getNavigation().isIdle()
 					|| SilkMothEntity.this.getTarget() != null
 					|| SilkMothEntity.this.random.nextInt(SilkwormsBalance.REST_CHANCE) != 0
 					|| !isGroundNearby()) {
@@ -386,7 +473,8 @@ public class SilkMothEntity extends TameableEntity {
 
 		@Override
 		public boolean canStart() {
-			return SilkMothEntity.this.getNavigation().isIdle()
+			return !SilkMothEntity.this.hasPassengers()
+					&& SilkMothEntity.this.getNavigation().isIdle()
 					&& SilkMothEntity.this.random.nextInt(10) == 0;
 		}
 
