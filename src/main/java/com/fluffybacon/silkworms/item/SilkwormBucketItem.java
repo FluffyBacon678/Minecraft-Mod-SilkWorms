@@ -40,18 +40,26 @@ public class SilkwormBucketItem extends Item {
 		super(settings);
 	}
 
-	/** Stored variant ids, or an empty list for a legacy count-only bucket. */
+	/** Stored variant ids, or an empty list for a legacy count-only bucket.
+	 * Defensively clamped to capacity so corrupted/edited item data can never
+	 * over-release worms (invalid ids are clamped later by byId). */
 	public static List<Integer> getVariantIds(ItemStack stack) {
 		List<Integer> ids = stack.get(ModComponents.SILKWORM_VARIANTS);
-		return ids != null ? ids : List.of();
+		if (ids == null || ids.isEmpty()) {
+			return List.of();
+		}
+		return ids.size() <= SilkwormsBalance.SILKWORM_BUCKET_CAPACITY
+				? ids
+				: List.copyOf(ids.subList(0, SilkwormsBalance.SILKWORM_BUCKET_CAPACITY));
 	}
 
 	public static int getCount(ItemStack stack) {
-		List<Integer> ids = stack.get(ModComponents.SILKWORM_VARIANTS);
-		if (ids != null && !ids.isEmpty()) {
+		List<Integer> ids = getVariantIds(stack);
+		if (!ids.isEmpty()) {
 			return ids.size();
 		}
-		return stack.getOrDefault(ModComponents.SILKWORM_COUNT, 1);
+		return Math.clamp(stack.getOrDefault(ModComponents.SILKWORM_COUNT, 1),
+				1, SilkwormsBalance.SILKWORM_BUCKET_CAPACITY);
 	}
 
 	@Override

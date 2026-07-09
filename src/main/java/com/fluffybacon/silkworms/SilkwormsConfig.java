@@ -22,6 +22,13 @@ public class SilkwormsConfig {
 	/** Registered at startup, so changing this needs a game restart. */
 	public boolean naturalSilkwormSpawning = true;
 
+	// --- Phase-out toggles (v0.5.2): disable new mod content before removal.
+	// Config-file only (config/silkworms.json); all default to enabled.
+	public boolean enableSilkwormGrowth = true;
+	public boolean enableCocoonHatching = true;
+	public boolean enableMothTaming = true;
+	public boolean enableMothRiding = true;
+
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	private static SilkwormsConfig instance;
 

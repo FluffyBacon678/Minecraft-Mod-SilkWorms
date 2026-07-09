@@ -127,6 +127,9 @@ public class SilkMothEntity extends TameableEntity {
 		if (stack.isOf(Items.CHERRY_LEAVES)) {
 			if (this.getEntityWorld() instanceof ServerWorld serverWorld) {
 				if (!this.isTamed()) {
+					if (!SilkwormsConfig.get().enableMothTaming) {
+						return super.interactMob(player, hand); // phase-out: no consume
+					}
 					// Untamed: a cherry-leaf feed always advances taming.
 					if (!player.isCreative()) {
 						stack.decrement(1);
@@ -157,7 +160,8 @@ public class SilkMothEntity extends TameableEntity {
 			return ActionResult.SUCCESS;
 		}
 		// Owner rides an empty-handed, tamed, un-leashed, un-ridden moth.
-		if (this.isTamed() && this.isOwner(player) && stack.isEmpty()
+		if (SilkwormsConfig.get().enableMothRiding
+				&& this.isTamed() && this.isOwner(player) && stack.isEmpty()
 				&& !this.isLeashed() && !this.hasPassengers()) {
 			if (!this.getEntityWorld().isClient()) {
 				player.startRiding(this);

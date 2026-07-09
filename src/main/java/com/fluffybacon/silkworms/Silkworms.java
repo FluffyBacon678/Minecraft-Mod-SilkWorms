@@ -1,6 +1,7 @@
 package com.fluffybacon.silkworms;
 
 import com.fluffybacon.silkworms.registry.ModComponents;
+import com.fluffybacon.silkworms.command.SilkwormsCommands;
 import com.fluffybacon.silkworms.registry.ModEntities;
 import com.fluffybacon.silkworms.registry.ModItems;
 import net.fabricmc.api.ModInitializer;
@@ -27,6 +28,7 @@ public class Silkworms implements ModInitializer {
 		ModComponents.register(); // before items: bucket settings reference it
 		ModEntities.register();
 		ModItems.register();
+		SilkwormsCommands.register();
 		LOGGER.info("Silkworms lifecycle mod initialized.");
 	}
 }

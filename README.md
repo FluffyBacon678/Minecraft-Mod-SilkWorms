@@ -57,6 +57,33 @@ All tuning values live in one place:
 [`SilkwormsBalance.java`](src/main/java/com/fluffybacon/silkworms/SilkwormsBalance.java)
 (plants required, movement/eat speeds, cocoon growth time, moth lifetime, spawn weight, …).
 
+## Compatibility
+
+Silkworms is deliberately low-risk for modpacks: **no mixins, no access
+wideners, no custom networking, no blocks or world data** — just entities,
+items and two item data components under the `silkworms:` namespace. It is
+verified against a 119-mod Fabric 1.21.11 pack (Sodium/Iris/Lithium etc.).
+Multiplayer requires the mod on **both server and client**. Mod Menu is
+optional. See [COMPATIBILITY_AND_REMOVAL.md](COMPATIBILITY_AND_REMOVAL.md)
+for the full compatibility notes and registry stability rules.
+
+## Removing the mod
+
+Silkworms adds persistent entities, items, and item data. Removing the jar
+without cleanup may leave missing content or lost entities/items (including
+tamed pet moths). The recommended removal path is to run the cleanup command
+**while the mod is still installed**:
+
+1. Back up the world.
+2. Run `/silkworms removal_check` (dry run), then
+   `/silkworms prepare_removal confirm` (op level 2+).
+3. Load any remaining important areas and run it again.
+4. Save, stop, remove the jar, reopen.
+
+Tamed moths are converted to vanilla Allays (same spot, same name — a
+friendly stand-in, not the same pet). Full details, limitations and honesty
+notes: [COMPATIBILITY_AND_REMOVAL.md](COMPATIBILITY_AND_REMOVAL.md).
+
 ## Version 1 scope
 
 Included: the three entities, spawn eggs, modest natural silkworm spawning (forest biomes),

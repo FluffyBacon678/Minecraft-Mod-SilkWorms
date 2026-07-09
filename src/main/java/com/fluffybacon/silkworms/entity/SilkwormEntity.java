@@ -185,7 +185,8 @@ public class SilkwormEntity extends AnimalEntity {
 				// Only consume the food if it actually does something: advance
 				// growth toward pupation, or (if already full-grown) heal.
 				boolean changed = false;
-				if (this.eatenPlants < SilkwormsConfig.get().grassPlantsRequired) {
+				if (SilkwormsConfig.get().enableSilkwormGrowth
+						&& this.eatenPlants < SilkwormsConfig.get().grassPlantsRequired) {
 					this.eatenPlants++;
 					changed = true;
 				} else if (this.getHealth() < this.getMaxHealth()) {
@@ -214,6 +215,7 @@ public class SilkwormEntity extends AnimalEntity {
 			this.eatCooldown--;
 		}
 		if (!this.getEntityWorld().isClient() && !this.isRemoved()
+				&& SilkwormsConfig.get().enableSilkwormGrowth
 				&& this.eatenPlants >= SilkwormsConfig.get().grassPlantsRequired) {
 			tickPupation();
 		}

@@ -107,6 +107,9 @@ public class CocoonEntity extends PathAwareEntity {
 				this.setNoGravity(false);
 			}
 		}
+		if (!SilkwormsConfig.get().enableCocoonHatching) {
+			return; // phase-out: growth and hatching paused
+		}
 		if (this.growthTimer > 0) {
 			// Hanging cocoons grow at full speed, grounded ones at half speed.
 			if (this.hanging || this.age % 2 == 0) {
