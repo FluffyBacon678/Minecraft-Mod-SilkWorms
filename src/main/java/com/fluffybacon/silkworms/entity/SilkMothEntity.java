@@ -7,6 +7,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LazyEntityReference;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.control.FlightMoveControl;
+import net.minecraft.entity.ai.goal.AttackWithOwnerGoal;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.LookAroundGoal;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
@@ -18,6 +19,7 @@ import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.passive.PassiveEntity;
@@ -77,14 +79,27 @@ public class SilkMothEntity extends TameableEntity {
 		this.goalSelector.add(4, new WanderFlyGoal());
 		this.goalSelector.add(5, new LookAtEntityGoal(this, PlayerEntity.class, 6.0F));
 		this.goalSelector.add(6, new LookAroundGoal(this));
-		// Defensive only: retaliate against whatever attacked the owner.
-		this.targetSelector.add(1, new TrackOwnerAttackerGoal(this));
+		// Pet combat, never while ridden: defend the owner (retaliate against
+		// whatever attacked them) and assist on whatever the owner attacks.
+		this.targetSelector.add(1, new TrackOwnerAttackerGoal(this) {
+			@Override
+			public boolean canStart() {
+				return !SilkMothEntity.this.hasPassengers() && super.canStart();
+			}
+		});
+		this.targetSelector.add(2, new AttackWithOwnerGoal(this) {
+			@Override
+			public boolean canStart() {
+				return !SilkMothEntity.this.hasPassengers() && super.canStart();
+			}
+		});
 	}
 
-	/** Companion stays defensive: it will only ever fight hostile mobs. */
+	/** Companion-friendly combat filter for both pet goals: only hostile mobs,
+	 * and never creepers (the vanilla wolf rule — don't trigger explosions). */
 	@Override
 	public boolean canAttackWithOwner(LivingEntity target, LivingEntity owner) {
-		return target instanceof HostileEntity;
+		return target instanceof HostileEntity && !(target instanceof CreeperEntity);
 	}
 
 	@Override
@@ -218,7 +233,9 @@ public class SilkMothEntity extends TameableEntity {
 		return new Vec3d(this.getX(), this.getBoundingBox().maxY, this.getZ());
 	}
 
-	/** Tamed moths become sturdier, permanent companions. */
+	/** Tamed moths become sturdier, permanent companions — and grow to mount
+	 * size. The vanilla SCALE attribute scales model, hitbox and rider seat
+	 * together and syncs/persists on its own. */
 	@Override
 	protected void updateAttributesForTamed() {
 		EntityAttributeInstance maxHealth = this.getAttributeInstance(EntityAttributes.MAX_HEALTH);
@@ -229,6 +246,11 @@ public class SilkMothEntity extends TameableEntity {
 			} else {
 				maxHealth.setBaseValue(SilkwormsBalance.SILK_MOTH_MAX_HEALTH);
 			}
+		}
+		EntityAttributeInstance scale = this.getAttributeInstance(EntityAttributes.SCALE);
+		if (scale != null) {
+			scale.setBaseValue(this.isTamed() ? SilkwormsBalance.TAMED_MOTH_SCALE : 1.0);
+			this.calculateDimensions(); // refresh hitbox + seat immediately
 		}
 	}
 

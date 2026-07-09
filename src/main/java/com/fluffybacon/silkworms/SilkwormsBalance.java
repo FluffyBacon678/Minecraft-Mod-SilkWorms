@@ -62,6 +62,11 @@ public final class SilkwormsBalance {
 	/** Health a cherry-leaf feed restores to a damaged tamed silk moth. */
 	public static final float MOTH_FEED_HEAL = 4.0F;
 
+	// --- Tamed moth size (v0.5.1) ---
+	/** Tamed moths grow to this multiple of the wild size. Uses the vanilla
+	 * SCALE attribute, so model, hitbox and rider seat all scale together. */
+	public static final double TAMED_MOTH_SCALE = 2.0;
+
 	// --- Rideable moth flight (v0.5.0) ---
 	// Mirrors the vanilla Happy Ghast controlled-flight path exactly; only the
 	// base speed differs. Acceleration and idle decay are inherent to vanilla
