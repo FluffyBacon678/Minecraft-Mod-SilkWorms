@@ -76,6 +76,18 @@ public final class SilkwormsBalance {
 	public static final double MOUNT_FLYING_SPEED = 0.10;
 	/** Upward push while holding jump (vanilla ghast value, scaled by speed). */
 	public static final double MOUNT_JUMP_LIFT = 0.5;
+	/** Mounted flight aims this many degrees above the rider's exact look
+	 * pitch, so glancing slightly down no longer causes unwanted descent. */
+	public static final float MOUNT_PITCH_OFFSET_DEGREES = 8.0F;
+
+	// --- Follow polish (v0.5.3) ---
+	/** Follow speed for tamed moths while their owner is riding another moth. */
+	public static final double FOLLOW_SPEED_OWNER_RIDING_MOTH = 2.6;
+	/** Path-refresh cadence (goal ticks): normal follow vs fast chase. */
+	public static final int FOLLOW_REPATH_NORMAL = 5;
+	public static final int FOLLOW_REPATH_FAST = 2;
+	/** Ticks of owner-velocity lead when chasing a fast-moving owner. */
+	public static final double FOLLOW_LEAD_TICKS = 8.0;
 
 	// --- Silk moth taming / companion (v0.3) ---
 	/** Cherry-leaves feedings needed to tame a moth. */

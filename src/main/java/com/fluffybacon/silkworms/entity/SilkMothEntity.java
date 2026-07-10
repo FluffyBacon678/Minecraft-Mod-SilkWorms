@@ -197,9 +197,14 @@ public class SilkMothEntity extends TameableEntity {
 		float up = 0.0F;
 		float forward = 0.0F;
 		if (controllingPlayer.forwardSpeed != 0.0F) {
-			// Flight follows the rider's look: looking down descends, up climbs.
-			float pitchCos = MathHelper.cos(controllingPlayer.getPitch() * (float) (Math.PI / 180.0));
-			float pitchSin = -MathHelper.sin(controllingPlayer.getPitch() * (float) (Math.PI / 180.0));
+			// Flight follows the rider's look, aimed a few degrees above it so
+			// glancing slightly at the ground still flies level; a clear
+			// downward look still descends and looking up still climbs.
+			float effectivePitch = MathHelper.clamp(
+					controllingPlayer.getPitch() - SilkwormsBalance.MOUNT_PITCH_OFFSET_DEGREES,
+					-89.0F, 89.0F);
+			float pitchCos = MathHelper.cos(effectivePitch * (float) (Math.PI / 180.0));
+			float pitchSin = -MathHelper.sin(effectivePitch * (float) (Math.PI / 180.0));
 			if (controllingPlayer.forwardSpeed < 0.0F) {
 				pitchCos *= -0.5F;
 				pitchSin *= -0.5F;
@@ -364,13 +369,19 @@ public class SilkMothEntity extends TameableEntity {
 			if (--this.updateCountdown > 0) {
 				return;
 			}
-			this.updateCountdown = 5;
 			LivingEntity owner = SilkMothEntity.this.getOwnerEntity();
 			if (owner == null) {
 				return;
 			}
 			double distance = SilkMothEntity.this.distanceTo(owner);
 			boolean gliding = owner.isGliding();
+			boolean ownerRidingMoth = owner.getVehicle() instanceof SilkMothEntity;
+			boolean fastChase = gliding || ownerRidingMoth;
+			// Fast-moving owners get frequent re-paths; teleport stays an
+			// emergency fallback only (the tight threshold is elytra-only).
+			this.updateCountdown = fastChase
+					? SilkwormsBalance.FOLLOW_REPATH_FAST
+					: SilkwormsBalance.FOLLOW_REPATH_NORMAL;
 			double teleportAt = gliding
 					? SilkwormsBalance.TELEPORT_DISTANCE_GLIDING
 					: SilkwormsBalance.TELEPORT_DISTANCE;
@@ -378,11 +389,26 @@ public class SilkMothEntity extends TameableEntity {
 				relocateNear(owner);
 				return;
 			}
-			double speed = (gliding || distance > SilkwormsBalance.CATCHUP_DISTANCE)
-					? SilkwormsBalance.CATCHUP_SPEED
-					: SilkwormsBalance.FOLLOW_SPEED;
-			SilkMothEntity.this.getNavigation().startMovingTo(
-					owner.getX(), owner.getY() + 1.0, owner.getZ(), speed);
+			double speed;
+			if (ownerRidingMoth) {
+				speed = SilkwormsBalance.FOLLOW_SPEED_OWNER_RIDING_MOTH;
+			} else if (gliding || distance > SilkwormsBalance.CATCHUP_DISTANCE) {
+				speed = SilkwormsBalance.CATCHUP_SPEED;
+			} else {
+				speed = SilkwormsBalance.FOLLOW_SPEED;
+			}
+			// Chase where the owner is going, not where they were: lead the
+			// target by a few ticks of their (vehicle's) velocity.
+			double targetX = owner.getX();
+			double targetY = owner.getY() + 1.0;
+			double targetZ = owner.getZ();
+			if (fastChase) {
+				Vec3d velocity = (ownerRidingMoth ? owner.getVehicle() : owner).getVelocity();
+				targetX += velocity.x * SilkwormsBalance.FOLLOW_LEAD_TICKS;
+				targetY += velocity.y * SilkwormsBalance.FOLLOW_LEAD_TICKS;
+				targetZ += velocity.z * SilkwormsBalance.FOLLOW_LEAD_TICKS;
+			}
+			SilkMothEntity.this.getNavigation().startMovingTo(targetX, targetY, targetZ, speed);
 		}
 
 		/** Teleports to open air near the owner — soft poof, no ground needed. */
