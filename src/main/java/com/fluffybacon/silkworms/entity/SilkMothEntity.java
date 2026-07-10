@@ -19,6 +19,9 @@ import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.MobEntity;
@@ -52,6 +55,13 @@ import java.util.EnumSet;
  * and only fights back against hostile mobs that attacked its owner first.
  */
 public class SilkMothEntity extends TameableEntity {
+	/** Visual style: 0 = classic (default, unchanged), 1 = refined. Test-only
+	 * for now — nothing in survival sets it; summon with {Style:1}. */
+	private static final TrackedData<Integer> STYLE =
+			DataTracker.registerData(SilkMothEntity.class, TrackedDataHandlerRegistry.INTEGER);
+	public static final int STYLE_CLASSIC = 0;
+	public static final int STYLE_REFINED = 1;
+
 	private int lifeTicks;
 	private int tameFeeds;
 
@@ -112,6 +122,20 @@ public class SilkMothEntity extends TameableEntity {
 	@Override
 	public boolean handleFallDamage(double fallDistance, float damagePerDistance, DamageSource damageSource) {
 		return false; // fluttering things don't take fall damage
+	}
+
+	@Override
+	protected void initDataTracker(DataTracker.Builder builder) {
+		super.initDataTracker(builder);
+		builder.add(STYLE, STYLE_CLASSIC);
+	}
+
+	public boolean isRefinedStyle() {
+		return this.dataTracker.get(STYLE) == STYLE_REFINED;
+	}
+
+	public void setStyle(int style) {
+		this.dataTracker.set(STYLE, style == STYLE_REFINED ? STYLE_REFINED : STYLE_CLASSIC);
 	}
 
 	@Nullable
@@ -310,6 +334,7 @@ public class SilkMothEntity extends TameableEntity {
 		super.writeCustomData(view);
 		view.putInt("LifeTicks", this.lifeTicks);
 		view.putInt("TameFeeds", this.tameFeeds);
+		view.putInt("Style", this.dataTracker.get(STYLE));
 	}
 
 	@Override
@@ -317,6 +342,7 @@ public class SilkMothEntity extends TameableEntity {
 		super.readCustomData(view);
 		this.lifeTicks = view.getInt("LifeTicks", SilkwormsConfig.get().silkMothLifetimeSeconds * 20);
 		this.tameFeeds = view.getInt("TameFeeds", 0);
+		setStyle(view.getInt("Style", STYLE_CLASSIC)); // missing/invalid -> classic
 	}
 
 	/**
