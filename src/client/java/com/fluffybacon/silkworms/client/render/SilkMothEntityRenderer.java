@@ -5,14 +5,20 @@ import com.fluffybacon.silkworms.client.ModModelLayers;
 import com.fluffybacon.silkworms.client.model.SilkMothEntityModel;
 import com.fluffybacon.silkworms.client.model.SilkMothRefinedModel;
 import com.fluffybacon.silkworms.entity.SilkMothEntity;
+import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.MobEntityRenderer;
+import net.minecraft.client.render.state.CameraRenderState;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
 /**
  * Renders the silk moth. Holds both the classic and the refined models and
- * swaps per entity in {@link #updateRenderState} — the same pattern vanilla's
- * CowEntityRenderer uses for its variants. Classic stays the default.
+ * picks per entity inside {@link #render} — the exact vanilla
+ * CowEntityRenderer variant pattern. The swap MUST happen in render (submit
+ * time, per state), not in updateRenderState: the 1.21.9+ pipeline extracts
+ * all entity states first and submits later, so a model assignment during
+ * update leaks the last entity's model onto every moth on screen.
  */
 public class SilkMothEntityRenderer
 		extends MobEntityRenderer<SilkMothEntity, SilkMothEntityRenderState, SilkMothEntityModel> {
@@ -42,6 +48,12 @@ public class SilkMothEntityRenderer
 		super.updateRenderState(entity, state, tickProgress);
 		state.saddled = entity.isTamed(); // harness marks a tamed companion
 		state.refined = entity.isRefinedStyle();
+	}
+
+	@Override
+	public void render(SilkMothEntityRenderState state, MatrixStack matrices,
+			OrderedRenderCommandQueue queue, CameraRenderState cameraState) {
 		this.model = state.refined ? this.refinedModel : this.classicModel;
+		super.render(state, matrices, queue, cameraState);
 	}
 }
