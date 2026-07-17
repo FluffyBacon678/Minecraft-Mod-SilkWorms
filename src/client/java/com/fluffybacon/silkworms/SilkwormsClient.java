@@ -2,7 +2,6 @@ package com.fluffybacon.silkworms;
 
 import com.fluffybacon.silkworms.client.ModModelLayers;
 import com.fluffybacon.silkworms.client.model.CocoonEntityModel;
-import com.fluffybacon.silkworms.client.model.SilkMothEntityModel;
 import com.fluffybacon.silkworms.client.model.SilkMothRefinedModel;
 import com.fluffybacon.silkworms.client.model.SilkwormEntityModel;
 import com.fluffybacon.silkworms.client.render.CocoonEntityRenderer;
@@ -19,7 +18,6 @@ public class SilkwormsClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		EntityModelLayerRegistry.registerModelLayer(ModModelLayers.SILKWORM, SilkwormEntityModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(ModModelLayers.COCOON, CocoonEntityModel::getTexturedModelData);
-		EntityModelLayerRegistry.registerModelLayer(ModModelLayers.SILK_MOTH, SilkMothEntityModel::getTexturedModelData);
 		EntityModelLayerRegistry.registerModelLayer(ModModelLayers.SILK_MOTH_REFINED, SilkMothRefinedModel::getTexturedModelData);
 
 		EntityRendererRegistry.register(ModEntities.SILKWORM, SilkwormEntityRenderer::new);

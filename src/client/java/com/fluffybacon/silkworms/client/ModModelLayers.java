@@ -10,6 +10,5 @@ public final class ModModelLayers {
 
 	public static final EntityModelLayer SILKWORM = new EntityModelLayer(Silkworms.id("silkworm"), "main");
 	public static final EntityModelLayer COCOON = new EntityModelLayer(Silkworms.id("cocoon"), "main");
-	public static final EntityModelLayer SILK_MOTH = new EntityModelLayer(Silkworms.id("silk_moth"), "main");
 	public static final EntityModelLayer SILK_MOTH_REFINED = new EntityModelLayer(Silkworms.id("silk_moth_refined"), "main");
 }
