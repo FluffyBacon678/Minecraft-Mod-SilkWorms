@@ -1,36 +1,51 @@
 # Silkworms
 
-A small, vanilla-friendly ambient life cycle mod for **Minecraft Fabric 1.21.11**.
+A gentle, vanilla-friendly life-cycle and companion mod for **Minecraft Fabric 1.21.11**.
 
 ```
 Silkworm  →  Cocoon  →  Silk Moth
 ```
 
-- **Silkworm** – a tiny passive ground creature that crawls slowly and grazes grass
-  vegetation. After eating 3 valid plants it becomes a cocoon.
-- **Cocoon** – a stationary pupa that incubates on a growth timer, then hatches a moth.
-- **Silk Moth** – a gentle, bee-sized flyer that drifts around and eventually dies naturally.
+Raise tiny silkworms into elegant silk moths — then tame one and fly it.
 
-Everything persists across world reloads, and the mod is deliberately lightweight so it
-behaves in a heavy modpack.
+- **Silkworm** – a tiny passive grazer with 8 natural colour morphs. Eats grass
+  *vegetation* (never grass blocks), or hand-feed it grass/leaves. When full it
+  seeks a leafy ceiling and pupates, hanging from the underside.
+- **Cocoon** – a hanging pupa that inherits the worm's colour with a subtle
+  tint, incubates on a timer, then hatches a moth.
+- **Silk Moth** – an elegant cream-and-tan flyer with layered eye-spot wings.
+  Wild moths live out a natural lifespan; tamed ones are forever.
 
-## Important behaviour
+## Features (v0.6.0 Survival Beta)
 
-**The silkworm never eats grass *blocks*.** It only removes grass *vegetation* that sits on
-top of the ground — short grass, tall grass, fern and large fern — and always leaves the
-ground block untouched (no `grass_block → dirt`). It also respects the `mobGriefing` game
-rule: with `mobGriefing false`, silkworms don't remove any vegetation.
+- **Full lifecycle** with persistent timers, colour-variant inheritance
+  (worm → cocoon) and hanging pupation under leaves and ceilings.
+- **Natural spawning**: forest surfaces, plus discoverable little colonies in
+  **lush caves** (packs of 2–5 on the moss — never in water).
+- **Silkworm Bucket**: carry up to 5 worms in one bucket; it remembers each
+  worm's colour and releases them one at a time.
+- **Tameable companion**: feed a moth cherry leaves ×3. Tamed moths grow to
+  2× size, wear a harness, never die of old age, follow better than an Allay
+  (elytra catch-up + air relocation), and defend you wolf-style — hostile
+  mobs only, never creepers, never while ridden.
+- **Rideable**: owner-only, empty-hand mount. Look-steered flight (aimed
+  slightly above your look so glancing down doesn't dive), jump to climb,
+  hover on idle, sneak to dismount safely. ~2× Happy Ghast speed.
+- **Mod Menu config**: lifecycle timings, spawn toggle, phase-out switches.
+- **Honest safe-removal tooling**: `/silkworms removal_check` and
+  `/silkworms prepare_removal confirm` convert tamed moths to named vanilla
+  Allays and clean up everything else before you uninstall.
 
 ## Environment
 
 | | |
 |---|---|
 | Minecraft | 1.21.11 |
-| Loader | Fabric |
-| Yarn mappings | 1.21.11+build.6 |
-| Fabric API | 0.141.3+1.21.11 |
-| Loom | 1.14.10 |
+| Loader | Fabric (≥ 0.16.0) |
+| Fabric API | required |
+| Mod Menu | optional |
 | Java | 21 |
+| Server/client | required on **both** in multiplayer |
 
 ## Building
 
@@ -39,23 +54,25 @@ rule: with `mobGriefing false`, silkworms don't remove any vegetation.
 ```
 
 The remapped mod jar is written to `build/libs/silkworms-<version>.jar`
-(use the file **without** the `-sources` suffix).
+(use the file **without** the `-sources` suffix). Requires a JDK 21
+(`JAVA_HOME=/path/to/jdk-21 ./gradlew build` if your default differs).
 
-> This machine's default Java is 17, but the mod targets Java 21. Point Gradle at a JDK 21
-> when building, e.g. `JAVA_HOME=/path/to/jdk-21 ./gradlew build`.
+## Getting started in-game
 
-## Testing in-game
-
-1. Drop the built jar into your `.minecraft/mods` folder (alongside Fabric API).
-2. In a creative world open the **Spawn Eggs** tab — Silkworm, Cocoon and Silk Moth eggs
-   are all there for testing each stage independently.
-3. Spawn a silkworm on grass with tall/short grass nearby and watch it graze, then pupate.
+1. Drop the jar into `.minecraft/mods` alongside Fabric API.
+2. **Survival**: explore a lush cave — silkworms live on the moss. Scoop some
+   up with a bucket, feed them grass or leaves, and watch the cycle.
+3. **Creative**: the Spawn Eggs tab has Silkworm, Cocoon and Silk Moth eggs
+   for testing each stage; the Tools tab has the Silkworm Bucket.
+4. Tame a hatched moth with **cherry leaves ×3**, then right-click it with an
+   empty hand to fly.
 
 ## Balance
 
 All tuning values live in one place:
 [`SilkwormsBalance.java`](src/main/java/com/fluffybacon/silkworms/SilkwormsBalance.java)
-(plants required, movement/eat speeds, cocoon growth time, moth lifetime, spawn weight, …).
+(plants required, timers, spawn weights, flight speeds, follow/teleport
+distances, …). Player-facing timings are also in the Mod Menu config.
 
 ## Compatibility
 
@@ -84,9 +101,8 @@ Tamed moths are converted to vanilla Allays (same spot, same name — a
 friendly stand-in, not the same pet). Full details, limitations and honesty
 notes: [COMPATIBILITY_AND_REMOVAL.md](COMPATIBILITY_AND_REMOVAL.md).
 
-## Version 1 scope
+## Roadmap (post-beta)
 
-Included: the three entities, spawn eggs, modest natural silkworm spawning (forest biomes),
-the grass-vegetation grazing, the full transform chain, persistent timers and placeholder
-art. Intentionally **not** included yet: taming, breeding, silk items/economy, mulberry
-trees, custom drops, and complex animation.
+Subtle particles, adult moth micro-variants, silk economy (shears on
+cocoons), breeding, and an optional auto-cruise flight key. See
+[CHANGELOG.md](CHANGELOG.md) for the full version history.
