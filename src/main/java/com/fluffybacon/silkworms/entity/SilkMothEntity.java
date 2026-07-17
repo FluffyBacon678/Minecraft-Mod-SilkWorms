@@ -59,8 +59,13 @@ public class SilkMothEntity extends TameableEntity {
 	 * for now — nothing in survival sets it; summon with {Style:1}. */
 	private static final TrackedData<Integer> STYLE =
 			DataTracker.registerData(SilkMothEntity.class, TrackedDataHandlerRegistry.INTEGER);
-	public static final int STYLE_CLASSIC = 0;
-	public static final int STYLE_REFINED = 1;
+	/** 0 = default (renders the approved refined look; missing/invalid NBT
+	 * also resolves here), 1 = refined alias (kept so {Style:1} keeps
+	 * working), 2 = legacy classic — debug-only fallback for a few versions
+	 * via {Style:2}; nothing in normal gameplay produces it. */
+	public static final int STYLE_DEFAULT = 0;
+	public static final int STYLE_REFINED_ALIAS = 1;
+	public static final int STYLE_LEGACY_CLASSIC = 2;
 
 	private int lifeTicks;
 	private int tameFeeds;
@@ -127,15 +132,17 @@ public class SilkMothEntity extends TameableEntity {
 	@Override
 	protected void initDataTracker(DataTracker.Builder builder) {
 		super.initDataTracker(builder);
-		builder.add(STYLE, STYLE_CLASSIC);
+		builder.add(STYLE, STYLE_DEFAULT);
 	}
 
+	/** Everything renders refined except the explicit legacy-classic style. */
 	public boolean isRefinedStyle() {
-		return this.dataTracker.get(STYLE) == STYLE_REFINED;
+		return this.dataTracker.get(STYLE) != STYLE_LEGACY_CLASSIC;
 	}
 
 	public void setStyle(int style) {
-		this.dataTracker.set(STYLE, style == STYLE_REFINED ? STYLE_REFINED : STYLE_CLASSIC);
+		this.dataTracker.set(STYLE,
+				style == STYLE_LEGACY_CLASSIC || style == STYLE_REFINED_ALIAS ? style : STYLE_DEFAULT);
 	}
 
 	@Nullable
@@ -342,7 +349,7 @@ public class SilkMothEntity extends TameableEntity {
 		super.readCustomData(view);
 		this.lifeTicks = view.getInt("LifeTicks", SilkwormsConfig.get().silkMothLifetimeSeconds * 20);
 		this.tameFeeds = view.getInt("TameFeeds", 0);
-		setStyle(view.getInt("Style", STYLE_CLASSIC)); // missing/invalid -> classic
+		setStyle(view.getInt("Style", STYLE_DEFAULT)); // missing/invalid -> refined default
 	}
 
 	/**

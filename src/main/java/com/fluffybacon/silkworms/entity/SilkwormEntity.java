@@ -7,6 +7,8 @@ import com.fluffybacon.silkworms.item.SilkwormBucketItem;
 import com.fluffybacon.silkworms.registry.ModComponents;
 import com.fluffybacon.silkworms.registry.ModEntities;
 import com.fluffybacon.silkworms.registry.ModItems;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityData;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
@@ -96,11 +98,38 @@ public class SilkwormEntity extends AnimalEntity {
 				.add(EntityAttributes.MOVEMENT_SPEED, SilkwormsBalance.SILKWORM_MOVEMENT_SPEED);
 	}
 
-	/** Natural spawn placement: on animal-spawnable ground with enough light. */
+	/** Natural spawn placement: never in fluid, then either a lush-cave spot
+	 * (moss underfoot or lush flora beside/above — no light requirement) or
+	 * the original lit-surface rule for forests. */
 	public static boolean canSpawn(EntityType<SilkwormEntity> type, ServerWorldAccess world,
 			SpawnReason reason, BlockPos pos, Random random) {
+		if (!world.getFluidState(pos).isEmpty()) {
+			return false; // never spawn in water/lava
+		}
+		if (world.getBlockState(pos.down()).isOf(Blocks.MOSS_BLOCK) || hasLushFloraNearby(world, pos)) {
+			return true;
+		}
 		return world.getBlockState(pos.down()).isIn(BlockTags.ANIMALS_SPAWNABLE_ON)
 				&& world.getBaseLightLevel(pos, 0) > 8;
+	}
+
+	/** Small fixed check: lush flora at, above or beside the spawn spot. */
+	private static boolean hasLushFloraNearby(ServerWorldAccess world, BlockPos pos) {
+		return isLushFlora(world.getBlockState(pos))
+				|| isLushFlora(world.getBlockState(pos.up()))
+				|| isLushFlora(world.getBlockState(pos.north()))
+				|| isLushFlora(world.getBlockState(pos.south()))
+				|| isLushFlora(world.getBlockState(pos.east()))
+				|| isLushFlora(world.getBlockState(pos.west()));
+	}
+
+	private static boolean isLushFlora(BlockState state) {
+		return state.isOf(Blocks.MOSS_CARPET)
+				|| state.isOf(Blocks.AZALEA)
+				|| state.isOf(Blocks.FLOWERING_AZALEA)
+				|| state.isOf(Blocks.CAVE_VINES)
+				|| state.isOf(Blocks.CAVE_VINES_PLANT)
+				|| state.isOf(Blocks.SPORE_BLOSSOM);
 	}
 
 	@Override

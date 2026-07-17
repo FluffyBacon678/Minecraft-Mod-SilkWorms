@@ -42,6 +42,10 @@ public final class SilkwormsBalance {
 	public static final int SILKWORM_SPAWN_WEIGHT = 8;
 	public static final int SILKWORM_MIN_GROUP_SIZE = 1;
 	public static final int SILKWORM_MAX_GROUP_SIZE = 3;
+	// Lush-cave colonies (v0.5.7): conservative weight, small packs of 2-5.
+	public static final int SILKWORM_LUSH_SPAWN_WEIGHT = 15;
+	public static final int SILKWORM_LUSH_MIN_GROUP = 2;
+	public static final int SILKWORM_LUSH_MAX_GROUP = 5;
 
 	// --- Cocoon hanging (v0.3) ---
 	/** Horizontal radius / upward reach when a full worm looks for a hang spot. */

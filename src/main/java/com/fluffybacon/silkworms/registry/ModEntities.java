@@ -20,6 +20,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.BiomeTags;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.biome.BiomeKeys;
 import net.minecraft.world.Heightmap;
 
 /**
@@ -36,7 +37,12 @@ public final class ModEntities {
 
 	public static void register() {
 		SILKWORM = register("silkworm", EntityType.Builder
-				.create(SilkwormEntity::new, SpawnGroup.CREATURE)
+				// AMBIENT (the bat group): its spawn cycle runs continuously
+				// underground and its small cap self-limits — the established
+				// pattern for cave critters. CREATURE placement is surface-only
+				// at worldgen and its cap is saturated by farm animals, so
+				// lush-cave worms would never spawn from it.
+				.create(SilkwormEntity::new, SpawnGroup.AMBIENT)
 				.dimensions(SilkwormsBalance.SILKWORM_WIDTH, SilkwormsBalance.SILKWORM_HEIGHT)
 				.maxTrackingRange(8));
 
@@ -58,15 +64,23 @@ public final class ModEntities {
 		SpawnRestriction.register(SILKWORM, SpawnLocationTypes.ON_GROUND,
 				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, SilkwormEntity::canSpawn);
 
-		// Modest spawns in forest biomes ("grassy or forest-like areas").
+		// Natural spawns (AMBIENT pool matches the worm's spawn group).
 		// Registered once at startup, so the config toggle needs a restart.
 		if (SilkwormsConfig.get().naturalSilkwormSpawning) {
+			// Modest surface spawns in forest biomes.
 			BiomeModifications.addSpawn(
 					BiomeSelectors.tag(BiomeTags.IS_FOREST),
-					SpawnGroup.CREATURE, SILKWORM,
+					SpawnGroup.AMBIENT, SILKWORM,
 					SilkwormsBalance.SILKWORM_SPAWN_WEIGHT,
 					SilkwormsBalance.SILKWORM_MIN_GROUP_SIZE,
 					SilkwormsBalance.SILKWORM_MAX_GROUP_SIZE);
+			// Discoverable little colonies in lush caves (moss/azalea/vines).
+			BiomeModifications.addSpawn(
+					BiomeSelectors.includeByKey(BiomeKeys.LUSH_CAVES),
+					SpawnGroup.AMBIENT, SILKWORM,
+					SilkwormsBalance.SILKWORM_LUSH_SPAWN_WEIGHT,
+					SilkwormsBalance.SILKWORM_LUSH_MIN_GROUP,
+					SilkwormsBalance.SILKWORM_LUSH_MAX_GROUP);
 		}
 	}
 
